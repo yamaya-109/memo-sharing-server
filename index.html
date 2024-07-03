@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memo Sharing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        #memos {
+            margin-bottom: 20px;
+        }
+        #memos div {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            position: relative;
+        }
+        #memoForm, .editForm {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #title, #content, .editTitle, .editContent {
+            width: 100%;
+            max-width: 800px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #title, .editTitle {
+            height: 40px;
+        }
+        #content, .editContent {
+            height: 200px;
+            resize: vertical;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .editForm {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            padding: 10px;
+            z-index: 1;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            #title, #content, .editTitle, .editContent {
+                font-size: 14px;
+                padding: 8px;
+            }
+            button {
+                font-size: 14px;
+                padding: 8px 15px;
+            }
+            #memos div {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Memo Sharing</h1>
+    <div id="memos"></div>
+    <form id="memoForm">
+        <input type="text" id="title" placeholder="Title" required>
+        <textarea id="content" placeholder="Content" required></textarea>
+        <button type="submit">Add Memo</button>
+    </form>
+    <script>
+        async function fetchMemos() {
+            const response = await fetch('/memos');
+            const memos = await response.json();
+            const memoDiv = document.getElementById('memos');
+            memoDiv.innerHTML = '';
+            memos.forEach(memo => {
+                const memoElement = document.createElement('div');
+                memoElement.innerHTML = `
+                    <h2>${memo.title}</h2>
+                    <p>${memo.content}</p>
+                    <button onclick="editMemo(${memo.id}, '${memo.title}', '${memo.content}', this.parentElement)">Edit</button>
+                    <button onclick="confirmDeleteMemo(${memo.id})">Delete</button>
+                `;
+                memoDiv.appendChild(memoElement);
+            });
+        }
+
+        function editMemo(id, title, content, memoElement) {//編集
+            const existingForm = memoElement.querySelector('.editForm');
+            if (existingForm) {
+                existingForm.remove();
+            }
+
+            const editForm = document.createElement('form');
+            editForm.className = 'editForm';
+            editForm.innerHTML = `
+                <input type="text" class="editTitle" value="${title}" required>
+                <textarea class="editContent" required>${content}</textarea>
+                <button type="submit">Update Memo</button>
+                <button type="button" onclick="cancelEdit(this.parentElement)">Cancel</button>
+            `;
+
+            editForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const newTitle = editForm.querySelector('.editTitle').value;
+                const newContent = editForm.querySelector('.editContent').value;
+
+                await fetch(`/memos/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title: newTitle, content: newContent }),
+                });
+
+                fetchMemos();
+            });
+
+            memoElement.appendChild(editForm);
+        }
+
+        function cancelEdit(editForm) {//編集キャンセル
+            editForm.remove();
+        }
+
+        async function deleteMemo(id) {//メモ削除、ただし下のconfirmDeleteMemoの結果によって変わる
+            await fetch(`/memos/${id}`, {
+                method: 'DELETE'
+            });
+            fetchMemos();
+        }
+
+        function confirmDeleteMemo(id) {
+            if (confirm('Are you sure you want to delete this memo?')) {
+                deleteMemo(id);
+            }
+        }
+
+        document.getElementById('memoForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+
+            await fetch('/memos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title, content }),
+            });
+
+            fetchMemos();
+            document.getElementById('memoForm').reset();
+        });
+
+        fetchMemos();
+    </script>
+</body>
+</html>
