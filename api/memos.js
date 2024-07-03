@@ -37,7 +37,7 @@ export default async function handler(req, res) {
         await conn.execute('DELETE FROM memos WHERE id = ?', [id]);
         res.status(204).end();
     } else {
-        res.setHeader('Allow', ['GET', POST', 'PUT', 'DELETE']);
+        res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
         res.status(405).end(`Method ${req.method} Not Allowed`);
     }
 }
