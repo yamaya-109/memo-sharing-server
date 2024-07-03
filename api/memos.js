@@ -1,41 +1,56 @@
-const mysql = require('mysql2/promise');
+import { createClient } from '@supabase/supabase-js';
 
-let connection;
-
-async function connectToDatabase() {
-    if (!connection) {
-        connection = await mysql.createConnection(process.env.DATABASE_URL);
-        await connection.execute(`
-            CREATE TABLE IF NOT EXISTS memos (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                title VARCHAR(255) NOT NULL,
-                content TEXT NOT NULL,
-                createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-    }
-    return connection;
-}
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
-    const conn = await connectToDatabase();
-
     if (req.method === 'GET') {
-        const [rows] = await conn.execute('SELECT * FROM memos');
-        res.status(200).json(rows);
+        const { data, error } = await supabase
+            .from('memos')
+            .select('*');
+
+        if (error) {
+            res.status(500).json({ error: error.message });
+        } else {
+            res.status(200).json(data);
+        }
     } else if (req.method === 'POST') {
         const { title, content } = req.body;
-        const [result] = await conn.execute('INSERT INTO memos (title, content) VALUES (?, ?)', [title, content]);
-        res.status(201).json({ id: result.insertId, title, content });
+        const { data, error } = await supabase
+            .from('memos')
+            .insert([{ title, content }]);
+
+        if (error) {
+            res.status(500).json({ error: error.message });
+        } else {
+            res.status(201).json(data[0]);
+        }
     } else if (req.method === 'PUT') {
         const { id } = req.query;
         const { title, content } = req.body;
-        await conn.execute('UPDATE memos SET title = ?, content = ? WHERE id = ?', [title, content, id]);
-        res.status(200).json({ id, title, content });
+        const { data, error } = await supabase
+            .from('memos')
+            .update({ title, content })
+            .eq('id', id);
+
+        if (error) {
+            res.status(500).json({ error: error.message });
+        } else {
+            res.status(200).json(data[0]);
+        }
     } else if (req.method === 'DELETE') {
         const { id } = req.query;
-        await conn.execute('DELETE FROM memos WHERE id = ?', [id]);
-        res.status(204).end();
+        const { data, error } = await supabase
+            .from('memos')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            res.status(500).json({ error: error.message });
+        } else {
+            res.status(204).end();
+        }
     } else {
         res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
         res.status(405).end(`Method ${req.method} Not Allowed`);
