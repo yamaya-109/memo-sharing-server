@@ -123,4 +123,65 @@
             editForm.className = 'editForm';
             editForm.innerHTML = `
                 <input type="text" class="editTitle" value="${title}" required>
-                <textarea class="editContent" required>${content}</
+                <textarea class="editContent" required>${content}</textarea>
+                <button type="submit">Update Memo</button>
+                <button type="button" onclick="cancelEdit(this.parentElement)">Cancel</button>
+            `;
+
+            editForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const newTitle = editForm.querySelector('.editTitle').value;
+                const newContent = editForm.querySelector('.editContent').value;
+
+                await fetch(`/api/memos?id=${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title: newTitle, content: newContent }),
+                });
+
+                fetchMemos();
+            });
+
+            memoElement.appendChild(editForm);
+        }
+
+        function cancelEdit(editForm) {
+            editForm.remove();
+        }
+
+        async function deleteMemo(id) {
+            await fetch(`/api/memos?id=${id}`, {
+                method: 'DELETE'
+            });
+            fetchMemos();
+        }
+
+        function confirmDeleteMemo(id) {
+            if (confirm('Are you sure you want to delete this memo?')) {
+                deleteMemo(id);
+            }
+        }
+
+        document.getElementById('memoForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+
+            await fetch('/api/memos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title, content }),
+            });
+
+            fetchMemos();
+            document.getElementById('memoForm').reset();
+        });
+
+        fetchMemos();
+    </script>
+</body>
+</html>
