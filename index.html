@@ -97,7 +97,7 @@
     </form>
     <script>
         async function fetchMemos() {
-            const response = await fetch('/memos');
+            const response = await fetch('/api/memos');
             const memos = await response.json();
             const memoDiv = document.getElementById('memos');
             memoDiv.innerHTML = '';
@@ -113,7 +113,7 @@
             });
         }
 
-        function editMemo(id, title, content, memoElement) {//編集
+        function editMemo(id, title, content, memoElement) {
             const existingForm = memoElement.querySelector('.editForm');
             if (existingForm) {
                 existingForm.remove();
@@ -133,7 +133,7 @@
                 const newTitle = editForm.querySelector('.editTitle').value;
                 const newContent = editForm.querySelector('.editContent').value;
 
-                await fetch(`/memos/${id}`, {
+                await fetch(`/api/memos?id=${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -147,12 +147,12 @@
             memoElement.appendChild(editForm);
         }
 
-        function cancelEdit(editForm) {//編集キャンセル
+        function cancelEdit(editForm) {
             editForm.remove();
         }
 
-        async function deleteMemo(id) {//メモ削除、ただし下のconfirmDeleteMemoの結果によって変わる
-            await fetch(`/memos/${id}`, {
+        async function deleteMemo(id) {
+            await fetch(`/api/memos?id=${id}`, {
                 method: 'DELETE'
             });
             fetchMemos();
@@ -169,7 +169,7 @@
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
 
-            await fetch('/memos', {
+            await fetch('/api/memos', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
