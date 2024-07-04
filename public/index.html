@@ -98,23 +98,19 @@
     <script>
         async function fetchMemos() {
             const response = await fetch('/api/memos');
-            if (response.ok) {
-                const memos = await response.json();
-                const memoDiv = document.getElementById('memos');
-                memoDiv.innerHTML = '';
-                memos.forEach(memo => {
-                    const memoElement = document.createElement('div');
-                    memoElement.innerHTML = `
-                        <h2>${memo.title}</h2>
-                        <p>${memo.content}</p>
-                        <button onclick="editMemo(${memo.id}, '${memo.title}', '${memo.content}', this.parentElement)">Edit</button>
-                        <button onclick="confirmDeleteMemo(${memo.id})">Delete</button>
-                    `;
-                    memoDiv.appendChild(memoElement);
-                });
-            } else {
-                console.error('Failed to fetch memos');
-            }
+            const memos = await response.json();
+            const memoDiv = document.getElementById('memos');
+            memoDiv.innerHTML = '';
+            memos.forEach(memo => {
+                const memoElement = document.createElement('div');
+                memoElement.innerHTML = 
+                    <h2>${memo.title}</h2>
+                    <p>${memo.content}</p>
+                    <button onclick="editMemo(${memo.id}, '${memo.title}', '${memo.content}', this.parentElement)">Edit</button>
+                    <button onclick="confirmDeleteMemo(${memo.id})">Delete</button>
+                ;
+                memoDiv.appendChild(memoElement);
+            });
         }
 
         function editMemo(id, title, content, memoElement) {
@@ -125,19 +121,19 @@
 
             const editForm = document.createElement('form');
             editForm.className = 'editForm';
-            editForm.innerHTML = `
+            editForm.innerHTML = 
                 <input type="text" class="editTitle" value="${title}" required>
                 <textarea class="editContent" required>${content}</textarea>
                 <button type="submit">Update Memo</button>
                 <button type="button" onclick="cancelEdit(this.parentElement)">Cancel</button>
-            `;
+            ;
 
             editForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const newTitle = editForm.querySelector('.editTitle').value;
                 const newContent = editForm.querySelector('.editContent').value;
 
-                const response = await fetch(`/api/memos?id=${id}`, {
+                await fetch(/api/memos?id=${id}, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -145,11 +141,7 @@
                     body: JSON.stringify({ title: newTitle, content: newContent }),
                 });
 
-                if (response.ok) {
-                    fetchMemos();
-                } else {
-                    console.error('Failed to update memo');
-                }
+                fetchMemos();
             });
 
             memoElement.appendChild(editForm);
@@ -160,15 +152,10 @@
         }
 
         async function deleteMemo(id) {
-            const response = await fetch(`/api/memos?id=${id}`, {
+            await fetch(/api/memos?id=${id}, {
                 method: 'DELETE'
             });
-
-            if (response.ok) {
-                fetchMemos();
-            } else {
-                console.error('Failed to delete memo');
-            }
+            fetchMemos();
         }
 
         function confirmDeleteMemo(id) {
@@ -182,7 +169,7 @@
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
 
-            const response = await fetch('/api/memos', {
+            await fetch('/api/memos', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -190,12 +177,8 @@
                 body: JSON.stringify({ title, content }),
             });
 
-            if (response.ok) {
-                fetchMemos();
-                document.getElementById('memoForm').reset();
-            } else {
-                console.error('Failed to add memo');
-            }
+            fetchMemos();
+            document.getElementById('memoForm').reset();
         });
 
         fetchMemos();
