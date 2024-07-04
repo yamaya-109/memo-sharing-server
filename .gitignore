@@ -1,2 +1,4 @@
 # Ignore node_modules directory
 # node_modules
+# .gitignoreファイルを編集（例：Visual Studio Codeを使用）
+code .gitignore
