@@ -12,13 +12,5 @@
   ],
   "routes": [
     { "src": "/api/memos", "dest": "/api/memos.js" }
-  ],
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    },
-    "cache": {
-      "paths": ["node_modules"]
-    }
-  }
+  ]
 }
