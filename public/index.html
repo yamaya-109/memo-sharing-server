@@ -103,12 +103,12 @@
             memoDiv.innerHTML = '';
             memos.forEach(memo => {
                 const memoElement = document.createElement('div');
-                memoElement.innerHTML = 
+                memoElement.innerHTML = `
                     <h2>${memo.title}</h2>
                     <p>${memo.content}</p>
                     <button onclick="editMemo(${memo.id}, '${memo.title}', '${memo.content}', this.parentElement)">Edit</button>
                     <button onclick="confirmDeleteMemo(${memo.id})">Delete</button>
-                ;
+                `;
                 memoDiv.appendChild(memoElement);
             });
         }
@@ -121,19 +121,19 @@
 
             const editForm = document.createElement('form');
             editForm.className = 'editForm';
-            editForm.innerHTML = 
+            editForm.innerHTML = `
                 <input type="text" class="editTitle" value="${title}" required>
                 <textarea class="editContent" required>${content}</textarea>
                 <button type="submit">Update Memo</button>
                 <button type="button" onclick="cancelEdit(this.parentElement)">Cancel</button>
-            ;
+            `;
 
             editForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const newTitle = editForm.querySelector('.editTitle').value;
                 const newContent = editForm.querySelector('.editContent').value;
 
-                await fetch(/api/memos?id=${id}, {
+                await fetch(`/api/memos?id=${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -152,7 +152,7 @@
         }
 
         async function deleteMemo(id) {
-            await fetch(/api/memos?id=${id}, {
+            await fetch(`/api/memos?id=${id}`, {
                 method: 'DELETE'
             });
             fetchMemos();
