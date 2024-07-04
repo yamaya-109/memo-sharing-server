@@ -11,6 +11,7 @@
     }
   ],
   "routes": [
-    { "src": "/api/memos", "dest": "/api/memos.js" }
+    { "src": "/api/memos", "dest": "/api/memos.js" },
+    { "src": "/", "dest": "/public/index.html" }
   ]
 }
