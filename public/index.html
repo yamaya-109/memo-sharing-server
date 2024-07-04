@@ -97,20 +97,27 @@
     </form>
     <script>
         async function fetchMemos() {
-            const response = await fetch('/api/memos');
-            const memos = await response.json();
-            const memoDiv = document.getElementById('memos');
-            memoDiv.innerHTML = '';
-            memos.forEach(memo => {
-                const memoElement = document.createElement('div');
-                memoElement.innerHTML = `
-                    <h2>${memo.title}</h2>
-                    <p>${memo.content}</p>
-                    <button onclick="editMemo(${memo.id}, '${memo.title}', '${memo.content}', this.parentElement)">Edit</button>
-                    <button onclick="confirmDeleteMemo(${memo.id})">Delete</button>
-                `;
-                memoDiv.appendChild(memoElement);
-            });
+            try {
+                const response = await fetch('/api/memos');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const memos = await response.json();
+                const memoDiv = document.getElementById('memos');
+                memoDiv.innerHTML = '';
+                memos.forEach(memo => {
+                    const memoElement = document.createElement('div');
+                    memoElement.innerHTML = `
+                        <h2>${memo.title}</h2>
+                        <p>${memo.content}</p>
+                        <button onclick="editMemo(${memo.id}, '${memo.title}', '${memo.content}', this.parentElement)">Edit</button>
+                        <button onclick="confirmDeleteMemo(${memo.id})">Delete</button>
+                    `;
+                    memoDiv.appendChild(memoElement);
+                });
+            } catch (error) {
+                console.error('Error fetching memos:', error);
+            }
         }
 
         function editMemo(id, title, content, memoElement) {
@@ -133,15 +140,18 @@
                 const newTitle = editForm.querySelector('.editTitle').value;
                 const newContent = editForm.querySelector('.editContent').value;
 
-                await fetch(`/api/memos?id=${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ title: newTitle, content: newContent }),
-                });
-
-                fetchMemos();
+                try {
+                    await fetch(`/api/memos?id=${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ title: newTitle, content: newContent }),
+                    });
+                    fetchMemos();
+                } catch (error) {
+                    console.error('Error updating memo:', error);
+                }
             });
 
             memoElement.appendChild(editForm);
@@ -152,10 +162,14 @@
         }
 
         async function deleteMemo(id) {
-            await fetch(`/api/memos?id=${id}`, {
-                method: 'DELETE'
-            });
-            fetchMemos();
+            try {
+                await fetch(`/api/memos?id=${id}`, {
+                    method: 'DELETE'
+                });
+                fetchMemos();
+            } catch (error) {
+                console.error('Error deleting memo:', error);
+            }
         }
 
         function confirmDeleteMemo(id) {
@@ -169,16 +183,19 @@
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
 
-            await fetch('/api/memos', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ title, content }),
-            });
-
-            fetchMemos();
-            document.getElementById('memoForm').reset();
+            try {
+                await fetch('/api/memos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title, content }),
+                });
+                fetchMemos();
+                document.getElementById('memoForm').reset();
+            } catch (error) {
+                console.error('Error adding memo:', error);
+            }
         });
 
         fetchMemos();
