@@ -1,11 +1,13 @@
 {
   "name": "memo-sharing-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "api/memos.js",
   "scripts": {
     "start": "node api/memos.js"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "body-parser": "^1.19.0",
+    "@supabase/supabase-js": "^1.29.4"
   }
 }
