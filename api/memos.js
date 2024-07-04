@@ -1,9 +1,9 @@
+require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -58,7 +58,6 @@ app.delete('/api/memos', async (req, res) => {
     res.status(200).json(data);
 });
 
-// Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
