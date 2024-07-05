@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memo Sharing</title>
     <style>
-        /* 既存のCSSスタイル */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -96,46 +95,28 @@
         <textarea id="content" placeholder="Content" required></textarea>
         <button type="submit">Add Memo</button>
     </form>
-    <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script>
-        const supabaseUrl = 'YOUR_SUPABASE_URL';
-        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
         async function fetchMemos() {
-            const { data, error } = await supabase
-                .from('memos')
-                .select('*');
-            
-            if (error) {
+            try {
+                const response = await fetch('/api/memos');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const memos = await response.json();
+                const memoDiv = document.getElementById('memos');
+                memoDiv.innerHTML = '';
+                memos.forEach(memo => {
+                    const memoElement = document.createElement('div');
+                    memoElement.innerHTML = `
+                        <h2>${memo.title}</h2>
+                        <p>${memo.content}</p>
+                        <button onclick="editMemo(${memo.id}, '${memo.title}', '${memo.content}', this.parentElement)">Edit</button>
+                        <button onclick="confirmDeleteMemo(${memo.id})">Delete</button>
+                    `;
+                    memoDiv.appendChild(memoElement);
+                });
+            } catch (error) {
                 console.error('Error fetching memos:', error);
-                return;
-            }
-
-            const memoDiv = document.getElementById('memos');
-            memoDiv.innerHTML = '';
-            data.forEach(memo => {
-                const memoElement = document.createElement('div');
-                memoElement.innerHTML = `
-                    <h2>${memo.title}</h2>
-                    <p>${memo.content}</p>
-                    <button onclick="editMemo(${memo.id}, '${memo.title}', '${memo.content}', this.parentElement)">Edit</button>
-                    <button onclick="confirmDeleteMemo(${memo.id})">Delete</button>
-                `;
-                memoDiv.appendChild(memoElement);
-            });
-        }
-
-        async function updateMemo(id, newTitle, newContent) {
-            const { error } = await supabase
-                .from('memos')
-                .update({ title: newTitle, content: newContent })
-                .eq('id', id);
-            
-            if (error) {
-                console.error('Error updating memo:', error);
-            } else {
-                fetchMemos();
             }
         }
 
@@ -154,11 +135,23 @@
                 <button type="button" onclick="cancelEdit(this.parentElement)">Cancel</button>
             `;
 
-            editForm.addEventListener('submit', (event) => {
+            editForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const newTitle = editForm.querySelector('.editTitle').value;
                 const newContent = editForm.querySelector('.editContent').value;
-                updateMemo(id, newTitle, newContent);
+
+                try {
+                    await fetch(`/api/memos?id=${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ title: newTitle, content: newContent }),
+                    });
+                    fetchMemos();
+                } catch (error) {
+                    console.error('Error updating memo:', error);
+                }
             });
 
             memoElement.appendChild(editForm);
@@ -169,15 +162,13 @@
         }
 
         async function deleteMemo(id) {
-            const { error } = await supabase
-                .from('memos')
-                .delete()
-                .eq('id', id);
-
-            if (error) {
-                console.error('Error deleting memo:', error);
-            } else {
+            try {
+                await fetch(`/api/memos?id=${id}`, {
+                    method: 'DELETE'
+                });
                 fetchMemos();
+            } catch (error) {
+                console.error('Error deleting memo:', error);
             }
         }
 
@@ -192,15 +183,18 @@
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
 
-            const { error } = await supabase
-                .from('memos')
-                .insert([{ title, content }]);
-
-            if (error) {
-                console.error('Error adding memo:', error);
-            } else {
+            try {
+                await fetch('/api/memos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title, content }),
+                });
                 fetchMemos();
                 document.getElementById('memoForm').reset();
+            } catch (error) {
+                console.error('Error adding memo:', error);
             }
         });
 
