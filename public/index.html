@@ -5,86 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memo Sharing</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        h1 {
-            text-align: center;
-        }
-        #memos {
-            margin-bottom: 20px;
-        }
-        #memos div {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            position: relative;
-        }
-        #memoForm, .editForm {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #title, #content, .editTitle, .editContent {
-            width: 100%;
-            max-width: 800px;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        #title, .editTitle {
-            height: 40px;
-        }
-        #content, .editContent {
-            height: 200px;
-            resize: vertical;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .editForm {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 5px;
-            padding: 10px;
-            z-index: 1;
-        }
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            #title, #content, .editTitle, .editContent {
-                font-size: 14px;
-                padding: 8px;
-            }
-            button {
-                font-size: 14px;
-                padding: 8px 15px;
-            }
-            #memos div {
-                padding: 8px;
-            }
-        }
+        /* 既存のCSSスタイル */
     </style>
 </head>
 <body>
@@ -105,7 +26,7 @@
             const { data, error } = await supabase
                 .from('memos')
                 .select('*');
-
+            
             if (error) {
                 console.error('Error fetching memos:', error);
                 return;
@@ -130,7 +51,7 @@
                 .from('memos')
                 .update({ title: newTitle, content: newContent })
                 .eq('id', id);
-
+            
             if (error) {
                 console.error('Error updating memo:', error);
             } else {
