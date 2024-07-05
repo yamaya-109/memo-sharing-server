@@ -141,12 +141,12 @@
                 const newContent = editForm.querySelector('.editContent').value;
 
                 try {
-                    await fetch(`/api/memos?id=${id}`, {
+                    await fetch(`/api/memos`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ title: newTitle, content: newContent }),
+                        body: JSON.stringify({ id, title: newTitle, content: newContent }),
                     });
                     fetchMemos();
                 } catch (error) {
