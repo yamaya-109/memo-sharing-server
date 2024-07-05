@@ -1,61 +1,51 @@
-// server.js
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
+const bodyParser = require('body-parser');
+
 const app = express();
-const db = new sqlite3.Database('./memo_sharing.db');
+const port = 3000;
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.json());
 
-app.get('/memos', (req, res) => {
-    db.all('SELECT * FROM memos', (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(rows);
-    });
+// Supabaseクライアントの初期化
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseKey = 'YOUR_SUPABASE_KEY';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// メモの取得
+app.get('/api/memos', async (req, res) => {
+    const { data, error } = await supabase.from('memos').select('*');
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
 });
 
-app.post('/memos', (req, res) => {
+// メモの追加
+app.post('/api/memos', async (req, res) => {
     const { title, content } = req.body;
-    db.run('INSERT INTO memos (title, content) VALUES (?, ?)', [title, content], function(err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.status(201).json({ id: this.lastID, title, content });
-    });
+    const { data, error } = await supabase.from('memos').insert([{ title, content }]);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
 });
 
-app.put('/memos/:id', (req, res) => {
-    const { id } = req.params;
-    const { title, content } = req.body;
-    db.run('UPDATE memos SET title = ?, content = ? WHERE id = ?', [title, content, id], function(err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json({ id, title, content });
-    });
+// メモの更新
+app.put('/api/memos', async (req, res) => {
+    const { id, title, content } = req.body;
+    const { data, error } = await supabase
+        .from('memos')
+        .update({ title, content })
+        .eq('id', id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
 });
 
-app.delete('/memos/:id', (req, res) => {
-    const { id } = req.params;
-    db.run('DELETE FROM memos WHERE id = ?', id, function(err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.status(204).send();
-    });
+// メモの削除
+app.delete('/api/memos', async (req, res) => {
+    const { id } = req.query;
+    const { data, error } = await supabase.from('memos').delete().eq('id', id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
 });
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });
